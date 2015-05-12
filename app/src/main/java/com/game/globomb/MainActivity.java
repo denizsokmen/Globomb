@@ -1,20 +1,42 @@
 package com.game.globomb;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
+import com.github.nkzawa.socketio.client.IO;
+import com.github.nkzawa.socketio.client.Socket;
+import java.net.URISyntaxException;
 
 
 public class MainActivity extends ActionBarActivity {
+    private final String TAG = "MainActivity";
+
+    private Socket socket;
+    {
+        try {
+            socket = IO.socket("http://localhost:8080");
+        } catch (URISyntaxException e) {
+            Log.e(TAG,"Unable to connect to host!");
+        }
+    }
+    private final MessageListener messageListener = new MessageListener(this);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        socket.connect();
+        socket.on("message", messageListener);
+
         setContentView(R.layout.activity_main);
 
         Button btn = (Button) findViewById(R.id.enterbutton);
@@ -28,6 +50,11 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+
+    public void showToast(String text, int duration){
+        Context context = getApplicationContext();
+        Toast.makeText(context, text, duration).show();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -50,4 +77,12 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        socket.disconnect();
+        socket.on("message", messageListener);
+    }
+
 }
