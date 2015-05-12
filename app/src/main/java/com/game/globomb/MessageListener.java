@@ -12,7 +12,7 @@ import org.json.JSONObject;
  * Created by tdgunes on 12/05/15.
  */
 public class MessageListener implements Emitter.Listener {
-
+    private final String TAG = "MessageListener";
     private final MainActivity activity;
 
     MessageListener(MainActivity activity){
@@ -24,6 +24,7 @@ public class MessageListener implements Emitter.Listener {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Log.v(TAG, args[0].toString());
                 JSONObject data = (JSONObject) args[0];
                 String username;
                 String message;
@@ -32,10 +33,10 @@ public class MessageListener implements Emitter.Listener {
                     message = data.getString("message");
                 }
                 catch (JSONException e) {
-                    Log.v("MessageListener", "Unable to parse: " + data);
+                    Log.v(TAG, "Unable to parse: " + data);
                     return;
                 }
-                activity.showToast(username+" says '"+message+"'.", Toast.LENGTH_SHORT);
+                activity.showToast(username+" says '"+message+"'.", Toast.LENGTH_LONG);
             }
         });
 

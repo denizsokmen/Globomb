@@ -2,33 +2,60 @@
  * Created by tdgunes on 12/05/15.
  */
 
+Object.count = function(obj) {
+    var count = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) count++;
+    }
+    return count;
+};
 
-var Player = function (name) {
+
+var Player = function (identifier, name) {
       this.name = name;
+      this.identifier = identifier;
 };
 
 var Game = function (io) {
     this.io = io;
-    this.players = [];
+    this.players = {};
     console.log("> Game initialized!");
-
+    var myself = this;
     io.on('connection', function(socket){
         console.log('a user connected');
-
+        var self = myself;
+        socket.emit("message",{
+            "username":"master chief",
+            "message":"hello world"
+            }
+        );
         socket.on('disconnect', function(){
             console.log('user disconnected');
+            self.deletePlayer(socket.id);
         });
 
         socket.on("acknowledge", function(message){
             console.log("message: "+ message);
+            self.addPlayer(socket.id, message["name"]);
         });
 
     });
 
 };
 
-Game.prototype.addPlayer = function (playerName) {
-    this.players.push(new Player(playerName));
+Game.prototype.deletePlayer = function (identifier) {
+    delete this.players[identifier];
+    this.logPlayerCount();
+};
+
+Game.prototype.logPlayerCount = function () {
+    console.log("Total players: " + Object.count(this.players));
+};
+
+Game.prototype.addPlayer = function (identifier, playerName) {
+    console.log("Player added: "+playerName);
+    this.players[identifier] = new Player(identifier, playerName);
+    this.logPlayerCount();
 };
 
 Game.prototype.broadcast = function (message) {
