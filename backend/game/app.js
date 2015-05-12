@@ -12,8 +12,10 @@ Object.count = function(obj) {
 
 
 var Player = function (identifier, name) {
-      this.name = name;
-      this.identifier = identifier;
+        this.name = name;
+        this.identifier = identifier;
+        this.longitude = 0;
+        this.latitude = 0;
 };
 
 var Game = function (io) {
@@ -35,13 +37,14 @@ var Game = function (io) {
         });
 
         socket.on("acknowledge", function(message){
-            console.log("message: "+ message);
             self.addPlayer(socket.id, message["name"]);
         });
 
     });
 
 };
+
+
 
 Game.prototype.deletePlayer = function (identifier) {
     delete this.players[identifier];

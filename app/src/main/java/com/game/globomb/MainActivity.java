@@ -23,7 +23,8 @@ import java.net.URISyntaxException;
 
 public class MainActivity extends ActionBarActivity {
     private final String TAG = "MainActivity";
-    private final String SERVER_URL = "http://10.0.2.2:8080/";
+    private final String SERVER_URL = "http://10.0.2.2:8080/"; //this is only for emulator
+
 
     private Socket gameSocket;
 
@@ -77,7 +78,7 @@ public class MainActivity extends ActionBarActivity {
                 Log.v(TAG, "Sending...: "+ object);
                 gameSocket.emit("acknowledge", object);
 
-//                startActivity(new Intent(MainActivity.this, GameActivity.class));
+                startActivity(new Intent(MainActivity.this, GameActivity.class));
             }
         });
     }
@@ -112,7 +113,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
+        Log.v(TAG,"onDestroy()");
         gameSocket.disconnect();
         gameSocket.off("message", messageListener);
     }
