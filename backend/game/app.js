@@ -41,7 +41,15 @@ var Game = function (io) {
         );
         socket.on('disconnect', function(){
             console.log('user disconnected');
+
             self.deletePlayer(socket.id);
+
+            for (var identifier in this.players) {
+                if (this.players.hasOwnProperty(identifier)) {
+                    this.io.to(identifier).emit('kick', {"identifier": socket.id } );
+                }
+            }
+
         });
 
         socket.on("acknowledge", function(message){
