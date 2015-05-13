@@ -50,7 +50,12 @@ public class GamestateListener implements Emitter.Listener {
                         ply.name = name;
                         ply.update();
 
+
                     }
+
+
+                    int number = data.getInt("time");
+                    activity.buttonLabel.setText(String.valueOf(number));
                 }
                 catch (JSONException e) {
                     Log.v(TAG, "Unable to parse: " + data);

@@ -72,6 +72,8 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     public HashMap<String, Player> playerMap = new HashMap<String, Player>();
     public String selfPlayer;
 
+    public Button buttonLabel;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +92,7 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
         }
         mRequestingLocationUpdates = true;
         mLastUpdateTime = "";
+        buttonLabel = (Button) findViewById(R.id.labelbutton);
 
         setUpMapIfNeeded();
         buildGoogleApiClient();
