@@ -23,7 +23,7 @@ import java.net.URISyntaxException;
 
 public class MainActivity extends ActionBarActivity {
     private final String TAG = "MainActivity";
-    private final String SERVER_URL = "http://10.0.2.2:8080/"; //this is only for emulator
+    private final String SERVER_URL = "http://188.226.228.153:8080/"; //this is only for emulator
 
 
     private Socket gameSocket;
@@ -31,6 +31,9 @@ public class MainActivity extends ActionBarActivity {
 
     private EditText editText;
     private MessageListener messageListener;
+    private InitializeListener initializeListener;
+    private KickListener kickListener;
+    private GamestateListener gamestateListener;
 
 
     @Override
@@ -38,50 +41,20 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        try {
-            Log.v(TAG,"Connecting to: "+SERVER_URL);
-            gameSocket = IO.socket(SERVER_URL);
-        } catch (URISyntaxException e) {
-            Log.v(TAG,"Unable to connect to host! \n"+e);
-        }
-
-        if (gameSocket != null ) {
-            startConnection();
-        }
-        else {
-            showToast("Unable to connect to server!", Toast.LENGTH_LONG);
-        }
-    }
-
-    private void startConnection() {
-        messageListener = new MessageListener(this);
-        editText = (EditText) findViewById(R.id.editText);
-
-        Log.v(TAG,"Starting...");
-
-
-        gameSocket.connect();
-        gameSocket.on("message", messageListener);
-
 
         Button btn = (Button) findViewById(R.id.enterbutton);
 
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                JSONObject object = new JSONObject();
-                try {
-                    object.put("name", editText.getText().toString());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                Log.v(TAG, "Sending...: "+ object);
-                gameSocket.emit("acknowledge", object);
+
 
                 startActivity(new Intent(MainActivity.this, GameActivity.class));
             }
         });
+
     }
+
 
 
     public void showToast(String text, int duration){

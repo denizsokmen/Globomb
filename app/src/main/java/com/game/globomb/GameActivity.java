@@ -1,12 +1,18 @@
 package com.game.globomb;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
+import com.github.nkzawa.socketio.client.IO;
+import com.github.nkzawa.socketio.client.Socket;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -18,13 +24,19 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.PipedInputStream;
+import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 public class GameActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
     private final String TAG = "GameActivity";
 
-    private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+    public GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private GoogleApiClient mGoogleApiClient;
     protected LocationRequest mLocationRequest;
     protected Location mCurrentLocation;
@@ -35,6 +47,7 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
+    private final String SERVER_URL = "http://188.226.228.153:8080/"; //this is only for emulator
     /**
      * Tracks the status of the location updates request. Value changes when the user presses the
      * Start Updates and Stop Updates buttons.
@@ -50,15 +63,31 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     protected final static String REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key";
     protected final static String LOCATION_KEY = "location-key";
     protected final static String LAST_UPDATED_TIME_STRING_KEY = "last-updated-time-string-key";
+    private MessageListener messageListener;
+    private InitializeListener initializeListener;
+    private KickListener kickListener;
+    private GamestateListener gamestateListener;
+    private Socket gameSocket;
+    private ExplodeListener explodeListener;
+    public HashMap<String, Player> playerMap = new HashMap<String, Player>();
+    public String selfPlayer;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
-//        updateValuesFromBundle(savedInstanceState);
 
+        try {
+            Log.v(TAG,"Connecting to: "+SERVER_URL);
+            gameSocket = IO.socket(SERVER_URL);
+        } catch (URISyntaxException e) {
+            Log.v(TAG,"Unable to connect to host! \n"+e);
+        }
 
+        if (gameSocket != null ) {
+
+        }
         mRequestingLocationUpdates = true;
         mLastUpdateTime = "";
 
@@ -70,6 +99,7 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     protected void onStart() {
         super.onStart();
         mGoogleApiClient.connect();
+        startConnection();
     }
 
 
@@ -84,6 +114,33 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
             startLocationUpdates();
         }
         setUpMapIfNeeded();
+    }
+
+    private void startConnection() {
+        messageListener = new MessageListener(this);
+        initializeListener = new InitializeListener(this);
+        kickListener = new KickListener(this);
+        gamestateListener = new GamestateListener(this);
+        explodeListener = new ExplodeListener(this);
+
+        Log.v(TAG,"Starting...");
+
+
+        gameSocket.connect();
+        gameSocket.on("message", messageListener);
+        gameSocket.on("initialize", initializeListener);
+        gameSocket.on("kick", kickListener);
+        gameSocket.on("gamestate", gamestateListener);
+        gameSocket.on("explode", explodeListener);
+        JSONObject object = new JSONObject();
+        try {
+            object.put("name", "asd");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        gameSocket.emit("acknowledge", object);
+
+
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -120,7 +177,7 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
      * installed) and the map has not already been instantiated.. This will ensure that we only ever
-     * call {@link #setUpMap()} once when {@link #mMap} is not null.
+     * call  when {@link #mMap} is not null.
      * <p/>
      * If it isn't installed {@link SupportMapFragment} (and
      * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
@@ -140,7 +197,6 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
                     .getMap();
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
-                setUpMap();
             }
         }
     }
@@ -151,10 +207,7 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
      * <p/>
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
-    private void setUpMap() {
-        myMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("You are here!"));
 
-    }
     public void showToast(String text, int duration){
         Context context = getApplicationContext();
         Toast.makeText(context, text, duration).show();
