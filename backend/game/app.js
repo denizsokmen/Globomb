@@ -92,8 +92,9 @@ Game.prototype.restart = function () {
 Game.prototype.update = function () {
     console.log("Update second: " + (this.timer.elapsedTime / 1000));
     var pack = {"time": (this.timer.elapsedTime / 1000)  };
+    var myself = this;
     pack["players"] = Object.keys(this.players).map(function(key){
-        return dictionary[key];
+        return myself.players[key];
     });
     for (var identifier in this.players) {
         if (this.players.hasOwnProperty(identifier)) {
