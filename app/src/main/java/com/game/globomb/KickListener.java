@@ -26,6 +26,7 @@ public class KickListener implements Emitter.Listener {
                 JSONObject data = (JSONObject) args[0];
                 try {
                     String playerid = data.getString("identifier");
+                    Toast.makeText(activity, "Player disconnected", Toast.LENGTH_SHORT).show();
                     Player ply = activity.playerMap.get(playerid);
                     if (ply != null) {
                         activity.playerMap.remove(playerid);

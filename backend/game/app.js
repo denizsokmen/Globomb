@@ -44,11 +44,8 @@ var Game = function (io) {
 
             self.deletePlayer(socket.id);
 
-            for (var identifier in this.players) {
-                if (this.players.hasOwnProperty(identifier)) {
-                    this.io.to(identifier).emit('kick', {"identifier": socket.id } );
-                }
-            }
+            
+	    socket.broadcast.emit("kick", {"identifier": socket.id });
 
         });
 

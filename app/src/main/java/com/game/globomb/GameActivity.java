@@ -71,6 +71,7 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     private ExplodeListener explodeListener;
     public HashMap<String, Player> playerMap = new HashMap<String, Player>();
     public String selfPlayer;
+    public String playerName;
 
     public Button buttonLabel;
 
@@ -79,6 +80,12 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
+        Bundle extras = getIntent().getExtras();
+
+        if (extras != null) {
+            playerName = extras.getString("name", "generic player");
+        }
 
         try {
             Log.v(TAG,"Connecting to: "+SERVER_URL);
@@ -137,7 +144,7 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
         gameSocket.on("explode", explodeListener);
         JSONObject object = new JSONObject();
         try {
-            object.put("name", "asd");
+            object.put("name", playerName);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -264,12 +271,15 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
 //        this.showToast("update", Toast.LENGTH_SHORT);
         mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-        Toast.makeText(this, ""+mCurrentLocation, Toast.LENGTH_SHORT).show();
 
-        mMap.addMarker(new MarkerOptions().position(
-                new LatLng(
-                        mCurrentLocation.getLatitude(),
-                        mCurrentLocation.getLongitude())
-        ).title("You are here!"));
+
+        JSONObject object = new JSONObject();
+        try {
+            object.put("longitude", mCurrentLocation.getLongitude());
+            object.put("latitude", mCurrentLocation.getLatitude());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        gameSocket.emit("location", object);
     }
 }
