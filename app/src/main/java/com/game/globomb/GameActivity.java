@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.nkzawa.socketio.client.IO;
@@ -18,6 +19,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -207,6 +209,54 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
                     .getMap();
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
+
+                mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(Marker marker) {
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 19.0f), 2000, null);
+                        if (playerMap.get(selfPlayer).marker == marker)
+                            return true;
+                        else
+                            return false;
+                    }
+                });
+
+                mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+
+                    // Use default InfoWindow frame
+                    @Override
+                    public View getInfoWindow(Marker arg0) {
+                        return null;
+                    }
+
+                    // Defines the contents of the InfoWindow
+                    @Override
+                    public View getInfoContents(Marker arg0) {
+
+                        // Getting view from the layout file info_window_layout
+                        View v = getLayoutInflater().inflate(R.layout.marker_layout, null);
+
+                        // Getting the position from the marker
+                        LatLng latLng = arg0.getPosition();
+
+
+                        // Getting reference to the TextView to set latitude
+                        TextView tvLat = (TextView) v.findViewById(R.id.tv_title);
+
+                        // Getting reference to the TextView to set longitude
+                        TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
+
+                        // Setting the latitude
+                        tvLat.setText("Player: " + arg0.getTitle());
+
+                        // Setting the longitude
+                        tvLng.setText("Longitude:" + latLng.longitude);
+
+                        // Returning the view containing InfoWindow contents
+                        return v;
+
+                    }
+                });
             }
         }
     }
