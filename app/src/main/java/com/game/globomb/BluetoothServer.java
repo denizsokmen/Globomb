@@ -53,7 +53,7 @@ public class BluetoothServer extends Thread {
             // If a connection was accepted
             if (socket != null) {
                 sockets.add(socket);
-                new ClientWorker(socket, game, this).run();
+                new ClientWorker(socket, game, this).start();
                 // Do work to manage the connection (in a separate thread)
                 //manageConnectedSocket(socket);
 

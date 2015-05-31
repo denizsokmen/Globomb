@@ -3,6 +3,7 @@ package com.game.globomb;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -104,6 +105,7 @@ public class BluetoothClient extends Thread {
                 while (!end) {
                     bytesRead = in.read(messageLength);
                     messageString += new String(messageLength, 0, bytesRead);
+                    Log.e("packread", messageString);
                     if (messageString.length() == bytesToRead) {
                         end = true;
                     }
@@ -112,6 +114,7 @@ public class BluetoothClient extends Thread {
                 //A full packet is read, do something with it
                 activity.runOnUiThread(new PacketHandler(messageString));
                 messageString="";
+                end = false;
 
             }catch (IOException e) {
                 e.printStackTrace();
@@ -127,7 +130,7 @@ public class BluetoothClient extends Thread {
             JSONObject obj = new JSONObject(packet);
             String id = obj.getString("packet");
             Toast.makeText(activity, "Got packet: "+id, Toast.LENGTH_LONG).show();
-            System.out.println(packet);
+            Log.e("info", obj.toString());
             /*gameSocket.on("message", messageListener);
             gameSocket.on("initialize", initializeListener);
             gameSocket.on("kick", kickListener);

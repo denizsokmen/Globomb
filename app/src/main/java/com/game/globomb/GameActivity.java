@@ -1,9 +1,11 @@
 package com.game.globomb;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -99,6 +101,7 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     private Handler handler;
     private TimerTask timerTask;
     private Timer timer;
+    private Runnable runnable;
 
 
     @Override
@@ -190,20 +193,17 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
         selfPlayer = "host";
 
         handler = new Handler();
-        timer = new Timer(false);
-        timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        sendGamestate();
-//                        timer.schedule(timerTask, 1000);
-                    }
-                });
+        runnable = new Runnable()
+        {
+
+            public void run()
+            {
+                sendGamestate();
+                handler.postDelayed(this, 1000);
             }
         };
-        timer.schedule(timerTask, 1000);
+
+        runnable.run();
     }
 
     private void startConnection() {
@@ -262,11 +262,12 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
-    protected synchronized void sendPacket(String name, JSONObject packet) {
+    public synchronized void sendPacket(String name, JSONObject packet) {
         if (isLocal && !isHost) {
             try {
+                Log.e("packet send", packet.toString());
                 packet.put("packet", name);
-                DataOutputStream stream = new DataOutputStream(client.outStream);
+                DataOutputStream stream = new DataOutputStream(client.mmSocket.getOutputStream());
                 byte[] bytes = packet.toString().getBytes(Charset.forName("UTF-8"));
                 ByteBuffer buffer = ByteBuffer.allocate(bytes.length + 2);
                 buffer.putShort((short) bytes.length);
@@ -279,9 +280,12 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
             }
         }
         else {
+
             gameSocket.emit(name, packet);
         }
     }
+
+
 
 
 
@@ -471,27 +475,37 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     }
 
     public void sendGamestate() {
-        try {
-            JSONObject gamestate = new JSONObject();
-            JSONArray players = new JSONArray();
-            for (HashMap.Entry<String, Player> entry : playerMap.entrySet()) {
-                Player ply = entry.getValue();
-                JSONObject playerObj = new JSONObject();
+        new AsyncTask<Void, Void, Void>() {
 
-                playerObj.put("identifier", ply.identifier);
-                playerObj.put("latitude", ply.latitude);
-                playerObj.put("longitude", ply.longitude);
-                playerObj.put("name", ply.name);
-                playerObj.put("bomb", ply.bomb);
-                players.put(playerObj);
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    JSONObject gamestate = new JSONObject();
+                    JSONArray players = new JSONArray();
+                    for (HashMap.Entry<String, Player> entry : playerMap.entrySet()) {
+                        Player ply = entry.getValue();
+                        JSONObject playerObj = new JSONObject();
 
+                        playerObj.put("identifier", ply.identifier);
+                        playerObj.put("latitude", ply.latitude);
+                        playerObj.put("longitude", ply.longitude);
+                        playerObj.put("name", ply.name);
+                        playerObj.put("bomb", ply.bomb);
+                        players.put(playerObj);
+
+                    }
+
+                    gamestate.put("players", players);
+                    gamestate.put("time", 10);
+                    server.broadcast("gamestate", gamestate);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                return null;
             }
+        }.execute();
 
-            gamestate.put("players", players);
-            gamestate.put("time", 10);
-            server.broadcast("gamestate", gamestate);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+
     }
 }
