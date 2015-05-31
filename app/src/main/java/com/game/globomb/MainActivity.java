@@ -140,8 +140,8 @@ public class MainActivity extends ActionBarActivity {
     public void onDestroy() {
         super.onDestroy();
         Log.v(TAG,"onDestroy()");
-        gameSocket.disconnect();
-        gameSocket.off("message", messageListener);
+//        gameSocket.disconnect();
+      //  gameSocket.off("message", messageListener);
     }
 
 }

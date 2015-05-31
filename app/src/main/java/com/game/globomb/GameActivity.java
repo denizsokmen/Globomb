@@ -1,8 +1,10 @@
 package com.game.globomb;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,14 +30,22 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class GameActivity extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
     private final String TAG = "GameActivity";
@@ -47,6 +57,8 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
 
     private BluetoothClient client;
     private BluetoothServer server;
+    private boolean isHost;
+    private boolean isLocal;
 
 
     private Marker myMarker;
@@ -83,6 +95,10 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     public Polyline polyline;
 
     public Button buttonLabel;
+    private BluetoothDevice device;
+    private Handler handler;
+    private TimerTask timerTask;
+    private Timer timer;
 
 
     @Override
@@ -91,9 +107,12 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
         setContentView(R.layout.activity_game);
 
         Bundle extras = getIntent().getExtras();
-
+        device = null;
         if (extras != null) {
             playerName = extras.getString("name", "generic player");
+            device = (BluetoothDevice) extras.get("device");
+            isLocal = extras.getBoolean("local", false);
+            isHost = extras.getBoolean("host", false);
         }
 
         try {
@@ -117,6 +136,7 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
                     Player player = playerMap.get(selfPlayer);
 
                     if (player.bomb) {
+
                         player.bomb = false;
                         JSONObject object = new JSONObject();
                         try {
@@ -124,7 +144,7 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        gameSocket.emit("bomb", object);
+                        sendPacket("bomb", object);
                     }
                 }
             }
@@ -158,31 +178,69 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     private void hostGame() {
         server = new BluetoothServer(this);
         server.start();
+
+        Player ply = new Player(this);
+        playerMap.put("host", ply);
+        ply.identifier = "host";
+        ply.latitude = 0;
+        ply.longitude = 0;
+        ply.bomb = true;
+        ply.name = "asd";
+        ply.update();
+        selfPlayer = "host";
+
+        handler = new Handler();
+        timer = new Timer(false);
+        timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        sendGamestate();
+//                        timer.schedule(timerTask, 1000);
+                    }
+                });
+            }
+        };
+        timer.schedule(timerTask, 1000);
     }
 
     private void startConnection() {
-        messageListener = new MessageListener(this);
-        initializeListener = new InitializeListener(this);
-        kickListener = new KickListener(this);
-        gamestateListener = new GamestateListener(this);
-        explodeListener = new ExplodeListener(this);
-
-        Log.v(TAG,"Starting...");
-
-
-        gameSocket.connect();
-        gameSocket.on("message", messageListener);
-        gameSocket.on("initialize", initializeListener);
-        gameSocket.on("kick", kickListener);
-        gameSocket.on("gamestate", gamestateListener);
-        gameSocket.on("explode", explodeListener);
-        JSONObject object = new JSONObject();
-        try {
-            object.put("name", playerName);
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (isLocal) {
+            if (isHost) {
+                hostGame();
+            }
+            else {
+                client = new BluetoothClient(device, this);
+                client.start();
+            }
         }
-        gameSocket.emit("acknowledge", object);
+        else {
+            messageListener = new MessageListener(this);
+            initializeListener = new InitializeListener(this);
+            kickListener = new KickListener(this);
+            gamestateListener = new GamestateListener(this);
+            explodeListener = new ExplodeListener(this);
+
+            Log.v(TAG, "Starting...");
+
+            gameSocket.connect();
+            gameSocket.on("message", messageListener);
+            gameSocket.on("initialize", initializeListener);
+            gameSocket.on("kick", kickListener);
+            gameSocket.on("gamestate", gamestateListener);
+            gameSocket.on("explode", explodeListener);
+
+            JSONObject object = new JSONObject();
+            try {
+                object.put("name", playerName);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            sendPacket("acknowledge", object);
+        }
 
 
     }
@@ -199,11 +257,30 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
 
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
-
-
         mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
         mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    protected synchronized void sendPacket(String name, JSONObject packet) {
+        if (isLocal && !isHost) {
+            try {
+                packet.put("packet", name);
+                DataOutputStream stream = new DataOutputStream(client.outStream);
+                byte[] bytes = packet.toString().getBytes(Charset.forName("UTF-8"));
+                ByteBuffer buffer = ByteBuffer.allocate(bytes.length + 2);
+                buffer.putShort((short) bytes.length);
+                buffer.put(bytes);
+                stream.write(buffer.array());
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            gameSocket.emit(name, packet);
+        }
     }
 
 
@@ -375,7 +452,12 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
         mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
 
-
+        if (isHost) {
+            Player ply = playerMap.get("host");
+            ply.longitude = mCurrentLocation.getLongitude();
+            ply.latitude = mCurrentLocation.getLatitude();
+            ply.update();
+        }
         JSONObject object = new JSONObject();
         try {
             object.put("longitude", mCurrentLocation.getLongitude());
@@ -383,6 +465,33 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        gameSocket.emit("location", object);
+
+
+        sendPacket("location", object);
+    }
+
+    public void sendGamestate() {
+        try {
+            JSONObject gamestate = new JSONObject();
+            JSONArray players = new JSONArray();
+            for (HashMap.Entry<String, Player> entry : playerMap.entrySet()) {
+                Player ply = entry.getValue();
+                JSONObject playerObj = new JSONObject();
+
+                playerObj.put("identifier", ply.identifier);
+                playerObj.put("latitude", ply.latitude);
+                playerObj.put("longitude", ply.longitude);
+                playerObj.put("name", ply.name);
+                playerObj.put("bomb", ply.bomb);
+                players.put(playerObj);
+
+            }
+
+            gamestate.put("players", players);
+            gamestate.put("time", 10);
+            server.broadcast("gamestate", gamestate);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

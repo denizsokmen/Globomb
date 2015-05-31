@@ -52,8 +52,6 @@ public class GamestateListener implements Emitter.Listener {
 
 
                     }
-
-
                     int number = data.getInt("time");
                     //activity.buttonLabel.setText(String.valueOf(number));
                 }

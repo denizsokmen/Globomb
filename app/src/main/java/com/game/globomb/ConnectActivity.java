@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -38,6 +39,19 @@ public class ConnectActivity extends ActionBarActivity {
         items = new ArrayList<ServerEntry>();
         ListView listView = (ListView) findViewById(R.id.listView);
 
+        Button hostbutton = (Button) findViewById(R.id.hostbutton);
+
+        hostbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ConnectActivity.this, GameActivity.class);
+                intent.putExtra("name", "asd");
+                intent.putExtra("local", true);
+                intent.putExtra("host", true);
+                startActivity(intent);
+            }
+        });
+
         adapter = new ListAdapter(this, R.layout.list_row, items);
 
         listView.setAdapter(adapter);
@@ -46,6 +60,12 @@ public class ConnectActivity extends ActionBarActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ServerEntry entry = items.get(position);
+                Intent intent = new Intent(ConnectActivity.this, GameActivity.class);
+                intent.putExtra("name", "asd");
+                intent.putExtra("local", true);
+                intent.putExtra("host", false);
+                intent.putExtra("device", entry.device);
+                startActivity(intent);
             }
         });
 
