@@ -25,6 +25,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,6 +44,9 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     private GoogleApiClient mGoogleApiClient;
     protected LocationRequest mLocationRequest;
     protected Location mCurrentLocation;
+
+    private BluetoothClient client;
+    private BluetoothServer server;
 
 
     private Marker myMarker;
@@ -74,6 +79,8 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
     public HashMap<String, Player> playerMap = new HashMap<String, Player>();
     public String selfPlayer;
     public String playerName;
+    public Player chosen;
+    public Polyline polyline;
 
     public Button buttonLabel;
 
@@ -103,6 +110,26 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
         mLastUpdateTime = "";
         buttonLabel = (Button) findViewById(R.id.labelbutton);
 
+        buttonLabel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (chosen != null) {
+                    Player player = playerMap.get(selfPlayer);
+
+                    if (player.bomb) {
+                        player.bomb = false;
+                        JSONObject object = new JSONObject();
+                        try {
+                            object.put("identifier", chosen.identifier);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        gameSocket.emit("bomb", object);
+                    }
+                }
+            }
+        });
+
         setUpMapIfNeeded();
         buildGoogleApiClient();
 
@@ -126,6 +153,11 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
             startLocationUpdates();
         }
         setUpMapIfNeeded();
+    }
+
+    private void hostGame() {
+        server = new BluetoothServer(this);
+        server.start();
     }
 
     private void startConnection() {
@@ -213,11 +245,32 @@ public class GameActivity extends FragmentActivity implements GoogleApiClient.Co
                 mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                     @Override
                     public boolean onMarkerClick(Marker marker) {
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 19.0f), 2000, null);
-                        if (playerMap.get(selfPlayer).marker == marker)
+                        if (polyline != null)
+                            polyline.remove();
+
+                        if (marker.equals(playerMap.get(selfPlayer).marker)) {
+
                             return true;
-                        else
+                        }
+                        else {
+                            for (HashMap.Entry<String, Player> entry : playerMap.entrySet()) {
+                                if (marker.equals(entry.getValue().marker)) {
+                                    chosen = entry.getValue();
+                                    Player player = playerMap.get(selfPlayer);
+                                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 12.0f), 2000, null);
+                                    polyline = mMap.addPolyline(new PolylineOptions()
+                                            .add(player.marker.getPosition())
+                                            .add(marker.getPosition()));
+
+                                    if (player.bomb) {
+                                        buttonLabel.setText("Send to " + chosen.name);
+                                    }
+
+                                    break;
+                                }
+                            }
                             return false;
+                        }
                     }
                 });
 

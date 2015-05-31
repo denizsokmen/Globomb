@@ -55,7 +55,7 @@ public class GamestateListener implements Emitter.Listener {
 
 
                     int number = data.getInt("time");
-                    activity.buttonLabel.setText(String.valueOf(number));
+                    //activity.buttonLabel.setText(String.valueOf(number));
                 }
                 catch (JSONException e) {
                     Log.v(TAG, "Unable to parse: " + data);

@@ -60,6 +60,15 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
+        Button localbtn = (Button) findViewById(R.id.localbutton);
+
+        localbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, ConnectActivity.class);
+                startActivity(intent);
+            }
+        });
 
         LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         boolean gps_enabled = false;
