@@ -1,6 +1,7 @@
 package com.game.globomb;
 
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -65,8 +66,14 @@ public class MainActivity extends ActionBarActivity {
         localbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, ConnectActivity.class);
-                startActivity(intent);
+                if (BluetoothAdapter.getDefaultAdapter() != null) {
+                    Intent intent = new Intent(MainActivity.this, ConnectActivity.class);
+                    startActivity(intent);
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "Your device does not have bluetooth adapter. :(", Toast.LENGTH_LONG).show();
+                }
+
             }
         });
 
