@@ -8,7 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class InitializeListener implements Emitter.Listener {
-    private final String TAG = "MessageListener";
+    private final String TAG = "InitializeListener";
     private final OnlineGameActivity activity;
 
     InitializeListener(OnlineGameActivity activity){

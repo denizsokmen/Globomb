@@ -9,7 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class ExplodeListener implements Emitter.Listener {
-    private final String TAG = "MessageListener";
+    private final String TAG = "ExplodeListener";
     private final OnlineGameActivity activity;
 
     ExplodeListener(OnlineGameActivity activity){

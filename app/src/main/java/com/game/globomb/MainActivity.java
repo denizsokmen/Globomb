@@ -48,13 +48,12 @@ public class MainActivity extends ActionBarActivity {
 
 
         Button btn = (Button) findViewById(R.id.onlinebutton);
+        editText = (EditText) findViewById(R.id.editText);
 
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                EditText edittext = (EditText) findViewById(R.id.editText);
-                String text = edittext.getText().toString();
+                String text = editText.getText().toString();
                 Intent intent = new Intent(MainActivity.this, OnlineGameActivity.class);
                 intent.putExtra("name", text);
                 startActivity(intent);
@@ -68,6 +67,7 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v) {
                 if (BluetoothAdapter.getDefaultAdapter() != null) {
                     Intent intent = new Intent(MainActivity.this, ConnectActivity.class);
+                    intent.putExtra("name", editText.getText().toString());
                     startActivity(intent);
                 }
                 else {

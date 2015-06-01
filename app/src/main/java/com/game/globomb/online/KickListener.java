@@ -9,7 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class KickListener implements Emitter.Listener {
-    private final String TAG = "MessageListener";
+    private final String TAG = "KickListener";
     private final OnlineGameActivity activity;
 
     KickListener(OnlineGameActivity activity){

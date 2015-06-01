@@ -39,7 +39,7 @@ import java.util.logging.LogRecord;
 
 
 public class OnlineGameActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
-    private static final String SERVER_URL = "10.0.2.2"; //on emulator
+    private static final String SERVER_URL = "http://10.0.2.2:8080"; //on emulator
 
     private final String TAG = "OnlineGameActivity";
 
@@ -67,6 +67,7 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
 
     public String playerName;
 
+    public TextView timeView;
 
     private Handler mTimerHandler = new Handler();
     private Runnable mTimerExecutor = new Runnable() {
@@ -83,6 +84,7 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
 
         setUpMapIfNeeded();
         buildGoogleApiClient();
+        setPlayerName();
 
         try {
             Log.v(TAG, "Connecting to: " + SERVER_URL);
@@ -94,7 +96,14 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
             mTimerHandler.postDelayed(mTimerExecutor, 4*1000);
         }
 
+        timeView = (TextView) findViewById(R.id.timeView);
+    }
 
+    private void setPlayerName() {
+        Bundle extras = getIntent().getExtras();
+        if (extras != null){
+            playerName = extras.getString("name", "unnamed player");
+        }
     }
 
     private void setupComponents(){
@@ -129,6 +138,12 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
         gameSocket.emit(name, packet);
     }
 
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        gameSocket.disconnect();
+        gameSocket.close();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

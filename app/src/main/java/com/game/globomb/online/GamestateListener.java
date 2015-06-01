@@ -10,7 +10,7 @@ import org.json.JSONObject;
 
 
 public class GamestateListener implements Emitter.Listener {
-    private final String TAG = "MessageListener";
+    private final String TAG = "GameStateListener";
     private final OnlineGameActivity activity;
 
     GamestateListener(OnlineGameActivity activity){
@@ -49,8 +49,8 @@ public class GamestateListener implements Emitter.Listener {
 
 
                     }
-                    int number = data.getInt("time");
-                    //activity.buttonLabel.setText(String.valueOf(number));
+                    String time = ""+(60-data.getInt("time"));
+                    activity.timeView.setText(time);
                 }
                 catch (JSONException e) {
                     Log.v(TAG, "Unable to parse: " + data);

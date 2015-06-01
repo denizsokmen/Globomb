@@ -87,7 +87,7 @@ Game.prototype.restart = function () {
         if (this.players.hasOwnProperty(identifier)) {
             this.io.to(identifier).emit("message",{
                 "username":"master chief",
-                "message":"New game is started!"
+                "message":"new round!"
             });
         }
     }
@@ -95,7 +95,7 @@ Game.prototype.restart = function () {
 
 //updates game for every second
 Game.prototype.update = function () {
-    console.log("Update second: " + (this.timer.elapsedTime / 1000));
+    //console.log("Update second: " + (this.timer.elapsedTime / 1000));
     var pack = {"time": (this.timer.elapsedTime / 1000)  };
     var myself = this;
     pack["players"] = Object.keys(this.players).map(function(key){

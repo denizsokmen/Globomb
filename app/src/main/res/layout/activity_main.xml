@@ -17,7 +17,8 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:background="@drawable/button_selector"
-        android:layout_marginTop="5dp" />
+        android:layout_marginTop="5dp"
+        android:textColor="#FFFFFF" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -61,5 +62,6 @@
         android:layout_alignRight="@+id/onlinebutton"
         android:layout_alignEnd="@+id/onlinebutton"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:textColor="#FFFFFF" />
 </RelativeLayout>
