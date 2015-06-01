@@ -293,7 +293,7 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
 
     @Override
     public void onConnectionSuspended(int i) {
-        Toast.makeText(getApplicationContext(), "Location services suspended. Please reconnect.", Toast.LENGTH_LONG);
+        Toast.makeText(getApplicationContext(), "Location services suspended. Please reconnect.", Toast.LENGTH_LONG).show();
     }
 
     protected void startLocationUpdates() {
@@ -320,6 +320,6 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        Toast.makeText(getApplicationContext(), "Connection failed.", Toast.LENGTH_LONG);
+        Toast.makeText(getApplicationContext(), "Connection failed.", Toast.LENGTH_LONG).show();
     }
 }
