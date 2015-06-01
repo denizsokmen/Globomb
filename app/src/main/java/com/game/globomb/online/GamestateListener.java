@@ -1,11 +1,8 @@
-package com.game.globomb;
+package com.game.globomb.online;
 
 import android.util.Log;
-import android.widget.Toast;
 
 import com.github.nkzawa.emitter.Emitter;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,9 +11,9 @@ import org.json.JSONObject;
 
 public class GamestateListener implements Emitter.Listener {
     private final String TAG = "MessageListener";
-    private final GameActivity activity;
+    private final OnlineGameActivity activity;
 
-    GamestateListener(GameActivity activity){
+    GamestateListener(OnlineGameActivity activity){
         this.activity = activity;
     }
 
@@ -37,9 +34,9 @@ public class GamestateListener implements Emitter.Listener {
                         boolean bomb = player.getBoolean("bomb");
                         String name = player.getString("name");
 
-                        Player ply = activity.playerMap.get(playerid);
+                        OnlinePlayer ply = activity.playerMap.get(playerid);
                         if (ply == null) {
-                            ply = new Player(activity);
+                            ply = new OnlinePlayer(activity);
                             activity.playerMap.put(playerid, ply);
 
                         }

@@ -1,4 +1,4 @@
-package com.game.globomb;
+package com.game.globomb.local;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -18,6 +18,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.game.globomb.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +46,7 @@ public class ConnectActivity extends ActionBarActivity {
         hostbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(ConnectActivity.this, GameActivity.class);
+                Intent intent = new Intent(ConnectActivity.this, LocalGameActivity.class);
                 intent.putExtra("name", "asd");
                 intent.putExtra("local", true);
                 intent.putExtra("host", true);
@@ -60,7 +62,7 @@ public class ConnectActivity extends ActionBarActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ServerEntry entry = items.get(position);
-                Intent intent = new Intent(ConnectActivity.this, GameActivity.class);
+                Intent intent = new Intent(ConnectActivity.this, LocalGameActivity.class);
                 intent.putExtra("name", "asd");
                 intent.putExtra("local", true);
                 intent.putExtra("host", false);

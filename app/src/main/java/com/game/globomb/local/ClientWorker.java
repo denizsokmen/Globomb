@@ -1,10 +1,11 @@
-package com.game.globomb;
+package com.game.globomb.local;
 
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.json.JSONArray;
+import com.game.globomb.online.OnlinePlayer;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,9 +22,9 @@ public class ClientWorker extends Thread {
     private BluetoothServer server;
     private BluetoothSocket socket;
     private InputStream inStream;
-    private GameActivity activity;
+    private LocalGameActivity activity;
 
-    public ClientWorker(BluetoothSocket sock, GameActivity activity, BluetoothServer serv) {
+    public ClientWorker(BluetoothSocket sock, LocalGameActivity activity, BluetoothServer serv) {
         this.activity = activity;
         server = serv;
         socket = sock;
@@ -87,7 +88,7 @@ public class ClientWorker extends Thread {
 
 
             if (id.equals("acknowledge")) {
-                Player ply = new Player(activity);
+                LocalPlayer ply = new LocalPlayer(activity);
                 ply.identifier = socket.toString();
                 activity.playerMap.put(ply.identifier, ply);
                 ply.latitude = 0;
@@ -108,13 +109,13 @@ public class ClientWorker extends Thread {
                 server.sendPacket(socket, "initialize", toSend);
             }
             else if (id.equals("bomb")) {
-                Player ply = activity.playerMap.get(obj.getString("identifier"));
+                LocalPlayer ply = activity.playerMap.get(obj.getString("identifier"));
                 if (ply != null) {
                     ply.bomb = true;
                 }
             }
             else if (id.equals("location")) {
-                Player ply = activity.playerMap.get(socket.toString());
+                LocalPlayer ply = activity.playerMap.get(socket.toString());
                 if (ply != null) {
                     ply.longitude = obj.getDouble("longitude");
                     ply.latitude = obj.getDouble("latitude");

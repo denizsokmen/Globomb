@@ -17,13 +17,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.github.nkzawa.socketio.client.IO;
+import com.game.globomb.local.ConnectActivity;
+import com.game.globomb.online.GamestateListener;
+import com.game.globomb.online.InitializeListener;
+import com.game.globomb.online.KickListener;
+import com.game.globomb.online.MessageListener;
+import com.game.globomb.online.OnlineGameActivity;
 import com.github.nkzawa.socketio.client.Socket;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.net.URISyntaxException;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -47,7 +47,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
 
-        Button btn = (Button) findViewById(R.id.enterbutton);
+        Button btn = (Button) findViewById(R.id.onlinebutton);
 
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,7 +55,7 @@ public class MainActivity extends ActionBarActivity {
 
                 EditText edittext = (EditText) findViewById(R.id.editText);
                 String text = edittext.getText().toString();
-                Intent intent = new Intent(MainActivity.this, GameActivity.class);
+                Intent intent = new Intent(MainActivity.this, OnlineGameActivity.class);
                 intent.putExtra("name", text);
                 startActivity(intent);
             }

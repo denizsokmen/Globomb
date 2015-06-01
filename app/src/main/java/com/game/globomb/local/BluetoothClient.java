@@ -1,10 +1,12 @@
-package com.game.globomb;
+package com.game.globomb.local;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.game.globomb.online.OnlinePlayer;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,9 +30,9 @@ public class BluetoothClient extends Thread {
     public OutputStream outStream;
     public InputStream inStream;
     private BluetoothAdapter mBluetoothAdapter;
-    private GameActivity activity;
+    private LocalGameActivity activity;
 
-    public BluetoothClient(BluetoothDevice device , GameActivity activity) {
+    public BluetoothClient(BluetoothDevice device , LocalGameActivity activity) {
         // Use a temporary object that is later assigned to mmSocket,
         // because mmSocket is final
         BluetoothSocket tmp = null;
@@ -145,7 +147,7 @@ public class BluetoothClient extends Thread {
                 boolean bomb = player.getBoolean("bomb");
                 String name = player.getString("name");
 
-                Player ply = new Player(activity);
+                LocalPlayer ply = new LocalPlayer(activity);
                 activity.playerMap.put(playerid, ply);
                 ply.identifier = playerid;
                 ply.latitude = latitude;
@@ -157,8 +159,8 @@ public class BluetoothClient extends Thread {
             }
             else if (id.equals("kick")) {
                 String playerid = obj.getString("identifier");
-                Toast.makeText(activity, "Player disconnected", Toast.LENGTH_SHORT).show();
-                Player ply = activity.playerMap.get(playerid);
+                Toast.makeText(activity, "OnlinePlayer disconnected", Toast.LENGTH_SHORT).show();
+                LocalPlayer ply = activity.playerMap.get(playerid);
                 if (ply != null) {
                     activity.playerMap.remove(playerid);
                     ply.marker.remove();
@@ -174,9 +176,9 @@ public class BluetoothClient extends Thread {
                     boolean bomb = player.getBoolean("bomb");
                     String name = player.getString("name");
 
-                    Player ply = activity.playerMap.get(playerid);
+                    LocalPlayer ply = activity.playerMap.get(playerid);
                     if (ply == null) {
-                        ply = new Player(activity);
+                        ply = new LocalPlayer(activity);
                         activity.playerMap.put(playerid, ply);
 
                     }

@@ -1,8 +1,8 @@
-package com.game.globomb;
+package com.game.globomb.online;
 
 import android.util.Log;
-import android.widget.Toast;
 
+import com.game.globomb.local.LocalGameActivity;
 import com.github.nkzawa.emitter.Emitter;
 
 import org.json.JSONArray;
@@ -14,9 +14,9 @@ import org.json.JSONObject;
  */
 public class MessageListener implements Emitter.Listener {
     private final String TAG = "MessageListener";
-    private final GameActivity activity;
+    private final OnlineGameActivity activity;
 
-    MessageListener(GameActivity activity){
+    MessageListener(OnlineGameActivity activity){
         this.activity = activity;
     }
 

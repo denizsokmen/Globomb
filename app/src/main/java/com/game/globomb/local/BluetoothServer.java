@@ -1,11 +1,8 @@
-package com.game.globomb;
+package com.game.globomb.local;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
-import android.content.Intent;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,10 +19,10 @@ public class BluetoothServer extends Thread {
     private final BluetoothServerSocket mmServerSocket;
     public final UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private BluetoothAdapter mBluetoothAdapter;
-    private GameActivity game;
+    private LocalGameActivity game;
     private ArrayList<BluetoothSocket> sockets;
 
-    public BluetoothServer(GameActivity activity) {
+    public BluetoothServer(LocalGameActivity activity) {
         // Use a temporary object that is later assigned to mmServerSocket,
         // because mmServerSocket is final
         game = activity;
