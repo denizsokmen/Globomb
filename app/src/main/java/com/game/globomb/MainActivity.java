@@ -50,6 +50,9 @@ public class MainActivity extends ActionBarActivity {
         Button btn = (Button) findViewById(R.id.onlinebutton);
         editText = (EditText) findViewById(R.id.editText);
 
+        if (Utility.inEmulator())
+            editText.setText(Utility.getRandomName());
+
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

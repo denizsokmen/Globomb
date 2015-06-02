@@ -8,10 +8,14 @@ import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.game.globomb.R;
+import com.game.globomb.Utility;
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
 import com.google.android.gms.common.ConnectionResult;
@@ -23,6 +27,8 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 
 import org.json.JSONException;
@@ -47,14 +53,14 @@ public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCa
 
     protected LocationRequest locationRequest;
     protected Location currentLocation;
-    protected Boolean requestingLocationUpdates; // Tracks the status of the location updates request. Value changes when the user presses the
+    protected Boolean requestingLocationUpdates = true; // Tracks the status of the location updates request. Value changes when the user presses the
                                                   // Start Updates and Stop Updates buttons.
 
     protected String lastUpdateTime; // Time when the location was updated represented as a String.
 
     public Polyline polyline;
     public HashMap<String, OnlinePlayer> playerMap = new HashMap<String, OnlinePlayer>();
-    public OnlinePlayer chosen;
+
     public String selfPlayer;
     public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
     public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = UPDATE_INTERVAL_IN_MILLISECONDS / 2;
@@ -70,6 +76,10 @@ public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCa
     public TextView timeView;
     public TextView playerView;
     public GoogleMap map;
+    public Button gloBombButton;
+    public Boolean bomb = false;
+    public OnlinePlayer chosen = null;
+    public OnlinePlayer player = null;
 
     private Handler timerHandler = new Handler();
     private Runnable timerExecutor = new Runnable() {
@@ -78,6 +88,7 @@ public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCa
             finish();
         }
     };
+    public ImageView gloBombImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,10 +106,37 @@ public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCa
             mapFragment.getMapAsync(this);
         }
 
-
-
+        gloBombImage = (ImageView) findViewById(R.id.bombImageView);
+        gloBombButton = (Button) findViewById(R.id.sendglobomb);
         timeView = (TextView) findViewById(R.id.timeView);
         playerView = (TextView) findViewById(R.id.playerView);
+
+        gloBombButton.setVisibility(View.INVISIBLE);
+        gloBombImage.setAlpha(0.0f);
+
+
+        gloBombButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (bomb && chosen != null) {
+                        player.bomb = false;
+                        gloBombImage.setAlpha(0.1f);
+                        gloBombButton.setVisibility(View.INVISIBLE);
+                        JSONObject object = new JSONObject();
+                        try {
+                            object.put("identifier", chosen.identifier);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        gameSocket.emit("bomb", object);
+                }
+            }
+        });
+
+        Log.v(TAG, "In emulator: " + Utility.inEmulator());
+
+        buildGoogleApiClient();
+
     }
 
     private void setPlayerName() {
@@ -174,13 +212,11 @@ public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCa
             }
 
 
-//            updateUI();
+
         }
 
-        // If the user presses the Start Updates button before GoogleApiClient connects, we set
-        // requestingLocationUpdates to true (see startUpdatesButtonHandler()). Here, we check
-        // the value of requestingLocationUpdates and if it is true, we start location updates.
         if (requestingLocationUpdates) {
+            setupComponents();
             startLocationUpdates();
         }
     }
@@ -191,25 +227,45 @@ public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCa
     }
 
     protected void startLocationUpdates() {
-        // The final argument to {@code requestLocationUpdates()} is a LocationListener
-        // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
-        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+
+        Log.v(TAG, "startLocationUpdates()");
+
+
+        try {
+            if (Utility.inEmulator()) {
+                JSONObject object = new JSONObject();
+                object.put("longitude", Utility.getRandomLongitude());
+                object.put("latitude", Utility.getRandomLatitude());
+                gameSocket.emit("location", object);
+            }
+            else {
+                LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+            }
+        }
+        catch (JSONException e){
+            e.printStackTrace();
+        }
+
     }
 
     @Override
     public void onLocationChanged(Location location) {
         currentLocation = location;
         lastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-        JSONObject object = new JSONObject();
+
         try {
-            object.put("longitude", currentLocation.getLongitude());
-            object.put("latitude", currentLocation.getLatitude());
+            if (!Utility.inEmulator()) {
+                JSONObject object = new JSONObject();
+                object.put("longitude", currentLocation.getLongitude());
+                object.put("latitude", currentLocation.getLatitude());
+                gameSocket.emit("location", object);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
 
-        gameSocket.emit("location", object);
+
     }
 
     @Override
@@ -220,13 +276,51 @@ public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCa
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.map = googleMap;
+        this.map.getUiSettings().setZoomControlsEnabled(true);
+        this.map.getUiSettings().setCompassEnabled(false);
+        this.map.getUiSettings().setMapToolbarEnabled(false);
+        this.map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                gloBombButton.setVisibility(View.INVISIBLE);
+            }
+        });
+
+        this.map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener()
+        {
+
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                if(marker.getTitle().equalsIgnoreCase("you")) // if you touch  your own marker
+                    gloBombButton.setVisibility(View.INVISIBLE);
+                else {
+                    if (bomb) {// if you have the bomb
+                        gloBombButton.setVisibility(View.VISIBLE);
+                        gloBombButton.setText("Send to " + marker.getTitle());
+                        for (HashMap.Entry<String, OnlinePlayer> entry : playerMap.entrySet()) {
+                            if (marker.equals(entry.getValue().marker)) {
+                                chosen = entry.getValue();
+                            }
+                        }
+                    }
+                    else {
+                        gloBombButton.setVisibility(View.INVISIBLE);
+                    }
+
+                }
+                marker.showInfoWindow();
+                return true;
+            }
+
+        });
+
         setPlayerName();
         Log.v(TAG, "Connecting to: " + SERVER_URL);
         try {
             gameSocket = IO.socket(SERVER_URL);
             gameSocket.connect();
 
-            setupComponents();
+//            setupComponents();
 
         } catch (URISyntaxException e) {
             Log.v(TAG, "Server URL is not valid! \n" + e);
@@ -266,4 +360,35 @@ public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCa
 
         gameSocket.emit("acknowledge", object);
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        googleApiClient.connect();
+    }
+
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (googleApiClient.isConnected()) {
+            googleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+
+        if (googleApiClient.isConnected() && requestingLocationUpdates) {
+            Log.v(TAG, "startLocationUpdates");
+            startLocationUpdates();
+        }
+
+    }
+
+
+
 }

@@ -31,7 +31,7 @@ public class KickListener implements Emitter.Listener {
                         activity.playerMap.remove(playerid);
                         ply.marker.remove();
                     }
-                    Toast.makeText(activity, ply.name+"  disconnected", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(activity, ply.name+" is disconnected", Toast.LENGTH_SHORT).show();
                 }
                 catch (JSONException e) {
                     Log.v(TAG, "Unable to parse: " + data);

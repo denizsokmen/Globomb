@@ -19,7 +19,8 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:id="@+id/frame">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -30,12 +31,29 @@
                 android:layout_gravity="center_horizontal" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="22dp"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="."
                 android:id="@+id/playerView"
                 android:layout_gravity="right|top" />
+
+            <Button
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Send GloBomb!"
+                android:id="@+id/sendglobomb"
+                android:layout_gravity="left|bottom"
+                android:visibility="visible" />
+
+            <ImageView
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:id="@+id/bombImageView"
+                android:layout_gravity="left|top"
+                android:src="@mipmap/ic_bomb"
+                android:visibility="visible" />
         </FrameLayout>
 
     </LinearLayout>
