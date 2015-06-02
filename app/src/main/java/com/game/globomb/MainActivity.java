@@ -18,7 +18,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.game.globomb.local.ConnectActivity;
-import com.game.globomb.online.GameStateListener2;
+import com.game.globomb.online.GameStateListener;
 import com.game.globomb.online.InitializeListener;
 import com.game.globomb.online.KickListener;
 import com.game.globomb.online.MessageListener;
@@ -38,7 +38,7 @@ public class MainActivity extends ActionBarActivity {
     private MessageListener messageListener;
     private InitializeListener initializeListener;
     private KickListener kickListener;
-    private GameStateListener2 gameStateListener2;
+    private GameStateListener gameStateListener;
 
 
     @Override

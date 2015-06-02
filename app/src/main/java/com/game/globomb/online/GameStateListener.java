@@ -11,11 +11,11 @@ import org.json.JSONObject;
 /**
  * Created by tdgunes on 02/06/15.
  */
-public class GameStateListener2 implements Emitter.Listener {
-    private final String TAG = "GameStateListener2";
+public class GameStateListener implements Emitter.Listener {
+    private final String TAG = "GameStateListener";
     private final OnlineGameActivity activity;
 
-    GameStateListener2(OnlineGameActivity activity){
+    GameStateListener(OnlineGameActivity activity){
         this.activity = activity;
     }
 

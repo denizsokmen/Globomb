@@ -62,7 +62,7 @@ public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCa
     private MessageListener messageListener;
     private InitializeListener initializeListener;
     private KickListener kickListener;
-    private GameStateListener2 gameStateListener2;
+    private GameStateListener gameStateListener;
     private Socket gameSocket;
     private ExplodeListener explodeListener;
 
@@ -244,7 +244,7 @@ public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCa
         messageListener = new MessageListener(this);
         initializeListener = new InitializeListener(this);
         kickListener = new KickListener(this);
-        gameStateListener2 = new GameStateListener2(this);
+        gameStateListener = new GameStateListener(this);
         explodeListener = new ExplodeListener(this);
 
         Log.v(TAG, "Starting...");
@@ -253,7 +253,7 @@ public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCa
         gameSocket.on("message", messageListener);
         gameSocket.on("initialize", initializeListener);
         gameSocket.on("kick", kickListener);
-        gameSocket.on("gamestate", gameStateListener2);
+        gameSocket.on("gamestate", gameStateListener);
         gameSocket.on("explode", explodeListener);
 
         JSONObject object = new JSONObject();

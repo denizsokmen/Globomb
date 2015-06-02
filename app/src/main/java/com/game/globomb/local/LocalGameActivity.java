@@ -161,7 +161,7 @@ public class LocalGameActivity extends FragmentActivity implements GoogleApiClie
 //            messageListener = new MessageListener(this);
 //            initializeListener = new InitializeListener(this);
 //            kickListener = new KickListener(this);
-//            gamestateListener = new GameStateListener2(this);
+//            gamestateListener = new GameStateListener(this);
 //            explodeListener = new ExplodeListener(this);
 //
 //            Log.v(TAG, "Starting...");
