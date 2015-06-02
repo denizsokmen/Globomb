@@ -19,8 +19,8 @@ public class LocalGameActivity extends FragmentActivity implements GoogleApiClie
 //    public GoogleMap mMap; // Might be null if Google Play services APK is not available.
 //    private GoogleApiClient mGoogleApiClient;
 //
-//    protected LocationRequest mLocationRequest;
-//    protected Location mCurrentLocation;
+//    protected LocationRequest locationRequest;
+//    protected Location currentLocation;
 //
 //    private BluetoothClient client;
 //    private BluetoothServer server;
@@ -69,8 +69,8 @@ public class LocalGameActivity extends FragmentActivity implements GoogleApiClie
 //        if (gameSocket != null ) {
 //
 //        }
-//        mRequestingLocationUpdates = true;
-//        mLastUpdateTime = "";
+//        requestingLocationUpdates = true;
+//        lastUpdateTime = "";
 //        buttonLabel = (Button) findViewById(R.id.labelbutton);
 //
 //        buttonLabel.setOnClickListener(new View.OnClickListener() {
@@ -113,7 +113,7 @@ public class LocalGameActivity extends FragmentActivity implements GoogleApiClie
         // connection to GoogleApiClient intact.  Here, we resume receiving
         // location updates if the user has requested them.
 //
-//        if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
+//        if (mGoogleApiClient.isConnected() && requestingLocationUpdates) {
 //            startLocationUpdates();
 //        }
 //        setUpMapIfNeeded();
@@ -161,7 +161,7 @@ public class LocalGameActivity extends FragmentActivity implements GoogleApiClie
 //            messageListener = new MessageListener(this);
 //            initializeListener = new InitializeListener(this);
 //            kickListener = new KickListener(this);
-//            gamestateListener = new GamestateListener(this);
+//            gamestateListener = new GameStateListener2(this);
 //            explodeListener = new ExplodeListener(this);
 //
 //            Log.v(TAG, "Starting...");
@@ -197,10 +197,10 @@ public class LocalGameActivity extends FragmentActivity implements GoogleApiClie
     }
 
     protected void createLocationRequest() {
-//        mLocationRequest = new LocationRequest();
-//        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
-//        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
-//        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+//        locationRequest = new LocationRequest();
+//        locationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+//        locationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+//        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
     public synchronized void sendPacket(String name, JSONObject packet) {
@@ -351,12 +351,12 @@ public class LocalGameActivity extends FragmentActivity implements GoogleApiClie
     @Override
     public void onConnected(Bundle bundle) {
 //        Log.v(TAG, "Location services connected.");
-//        if (mCurrentLocation == null) {
-//            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+//        if (currentLocation == null) {
+//            currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 //
-//            if (mCurrentLocation != null ){
+//            if (currentLocation != null ){
 //
-//                mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+//                lastUpdateTime = DateFormat.getTimeInstance().format(new Date());
 //
 //            }
 //
@@ -365,9 +365,9 @@ public class LocalGameActivity extends FragmentActivity implements GoogleApiClie
 //        }
 //
 //        // If the user presses the Start Updates button before GoogleApiClient connects, we set
-//        // mRequestingLocationUpdates to true (see startUpdatesButtonHandler()). Here, we check
-//        // the value of mRequestingLocationUpdates and if it is true, we start location updates.
-//        if (mRequestingLocationUpdates) {
+//        // requestingLocationUpdates to true (see startUpdatesButtonHandler()). Here, we check
+//        // the value of requestingLocationUpdates and if it is true, we start location updates.
+//        if (requestingLocationUpdates) {
 //            startLocationUpdates();
 //        }
     }
@@ -378,7 +378,7 @@ public class LocalGameActivity extends FragmentActivity implements GoogleApiClie
     protected void startLocationUpdates() {
         // The final argument to {@code requestLocationUpdates()} is a LocationListener
         // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
-//        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+//        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
     }
 
     @Override
@@ -394,19 +394,19 @@ public class LocalGameActivity extends FragmentActivity implements GoogleApiClie
     @Override
     public void onLocationChanged(Location location) {
 //        this.showToast("update", Toast.LENGTH_SHORT);
-//        mCurrentLocation = location;
-//        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+//        currentLocation = location;
+//        lastUpdateTime = DateFormat.getTimeInstance().format(new Date());
 //
 //        if (isHost) {
 //            OnlinePlayer ply = playerMap.get("host");
-//            ply.longitude = mCurrentLocation.getLongitude();
-//            ply.latitude = mCurrentLocation.getLatitude();
+//            ply.longitude = currentLocation.getLongitude();
+//            ply.latitude = currentLocation.getLatitude();
 //            ply.update();
 //        }
 //        JSONObject object = new JSONObject();
 //        try {
-//            object.put("longitude", mCurrentLocation.getLongitude());
-//            object.put("latitude", mCurrentLocation.getLatitude());
+//            object.put("longitude", currentLocation.getLongitude());
+//            object.put("latitude", currentLocation.getLatitude());
 //        } catch (JSONException e) {
 //            e.printStackTrace();
 //        }

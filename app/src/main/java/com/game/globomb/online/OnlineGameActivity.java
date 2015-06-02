@@ -2,12 +2,12 @@ package com.game.globomb.online;
 
 import android.location.Location;
 import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,13 +19,11 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
+
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,22 +33,25 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
 
-import java.util.logging.LogRecord;
 
 
-public class OnlineGameActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
+
+public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
     private static final String SERVER_URL = "http://10.0.2.2:8080"; //on emulator
 
     private final String TAG = "OnlineGameActivity";
 
-    public GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    private GoogleApiClient mGoogleApiClient;
-    protected LocationRequest mLocationRequest;
-    protected Location mCurrentLocation;
 
-    protected Boolean mRequestingLocationUpdates; // Tracks the status of the location updates request. Value changes when the user presses the
+    private GoogleApiClient googleApiClient;
+
+
+    protected LocationRequest locationRequest;
+    protected Location currentLocation;
+    protected Boolean requestingLocationUpdates; // Tracks the status of the location updates request. Value changes when the user presses the
                                                   // Start Updates and Stop Updates buttons.
-    protected String mLastUpdateTime; // Time when the location was updated represented as a String.
+
+    protected String lastUpdateTime; // Time when the location was updated represented as a String.
+
     public Polyline polyline;
     public HashMap<String, OnlinePlayer> playerMap = new HashMap<String, OnlinePlayer>();
     public OnlinePlayer chosen;
@@ -61,16 +62,17 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
     private MessageListener messageListener;
     private InitializeListener initializeListener;
     private KickListener kickListener;
-    private GamestateListener gamestateListener;
+    private GameStateListener2 gameStateListener2;
     private Socket gameSocket;
     private ExplodeListener explodeListener;
 
     public String playerName;
-
     public TextView timeView;
+    public TextView playerView;
+    public GoogleMap map;
 
-    private Handler mTimerHandler = new Handler();
-    private Runnable mTimerExecutor = new Runnable() {
+    private Handler timerHandler = new Handler();
+    private Runnable timerExecutor = new Runnable() {
         @Override
         public void run() {
             finish();
@@ -82,21 +84,21 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_online_game);
 
-        setUpMapIfNeeded();
-        buildGoogleApiClient();
-        setPlayerName();
+        FragmentManager myFM = getSupportFragmentManager();
+        final SupportMapFragment mapFragment = (SupportMapFragment) myFM
+                .findFragmentById(R.id.onlinemap);
 
-        try {
-            Log.v(TAG, "Connecting to: " + SERVER_URL);
-            gameSocket = IO.socket(SERVER_URL);
-            setupComponents();
-        } catch (URISyntaxException e) {
-            Log.v(TAG,"Unable to connect to host! \n"+e);
-            Toast.makeText(getApplicationContext(), "Unable to connect to host!", Toast.LENGTH_LONG).show();
-            mTimerHandler.postDelayed(mTimerExecutor, 4*1000);
+        if (mapFragment == null) {
+            Toast.makeText(getApplicationContext(), "NULL", Toast.LENGTH_LONG).show();
+        }
+        else{
+            mapFragment.getMapAsync(this);
         }
 
+
+
         timeView = (TextView) findViewById(R.id.timeView);
+        playerView = (TextView) findViewById(R.id.playerView);
     }
 
     private void setPlayerName() {
@@ -106,37 +108,9 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
         }
     }
 
-    private void setupComponents(){
-
-        messageListener = new MessageListener(this);
-        initializeListener = new InitializeListener(this);
-        kickListener = new KickListener(this);
-        gamestateListener = new GamestateListener(this);
-        explodeListener = new ExplodeListener(this);
-
-        Log.v(TAG, "Starting...");
-
-        gameSocket.connect();
-        gameSocket.on("message", messageListener);
-        gameSocket.on("initialize", initializeListener);
-        gameSocket.on("kick", kickListener);
-        gameSocket.on("gamestate", gamestateListener);
-        gameSocket.on("explode", explodeListener);
-
-        JSONObject object = new JSONObject();
-        try {
-            object.put("name", playerName);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        sendPacket("acknowledge", object);
-    }
 
 
-    public synchronized void sendPacket(String name, JSONObject packet) {
-        gameSocket.emit(name, packet);
-    }
+
 
     @Override
     public void onDestroy(){
@@ -170,7 +144,7 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
 
     protected synchronized void buildGoogleApiClient() {
         Log.v(TAG, "Building GoogleApiClient");
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
+        googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
@@ -179,103 +153,23 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
     }
 
     protected void createLocationRequest() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest = new LocationRequest();
+        locationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+        locationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
-    private void setUpMapIfNeeded() {
-        // Do a null check to confirm that we have not already instantiated the map.
-        if (mMap == null) {
-            // Try to obtain the map from the SupportMapFragment.
-            mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
-                    .getMap();
-            // Check if we were successful in obtaining the map.
-            if (mMap != null) {
-
-                mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                    @Override
-                    public boolean onMarkerClick(Marker marker) {
-                        if (polyline != null)
-                            polyline.remove();
-
-                        if (marker.equals(playerMap.get(selfPlayer).marker)) {
-
-                            return true;
-                        }
-                        else {
-                            for (HashMap.Entry<String, OnlinePlayer> entry : playerMap.entrySet()) {
-                                if (marker.equals(entry.getValue().marker)) {
-                                    chosen = entry.getValue();
-                                    OnlinePlayer onlinePlayer = playerMap.get(selfPlayer);
-                                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 12.0f), 2000, null);
-                                    polyline = mMap.addPolyline(new PolylineOptions()
-                                            .add(onlinePlayer.marker.getPosition())
-                                            .add(marker.getPosition()));
-
-                                    if (onlinePlayer.bomb) {
-                                        Toast.makeText(getApplicationContext(), "Send to " + chosen.name, Toast.LENGTH_LONG).show();
-                                    }
-
-                                    break;
-                                }
-                            }
-                            return false;
-                        }
-                    }
-                });
-
-                mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-
-                    // Use default InfoWindow frame
-                    @Override
-                    public View getInfoWindow(Marker arg0) {
-                        return null;
-                    }
-
-                    // Defines the contents of the InfoWindow
-                    @Override
-                    public View getInfoContents(Marker arg0) {
-
-                        // Getting view from the layout file info_window_layout
-                        View v = getLayoutInflater().inflate(R.layout.marker_layout, null);
-
-                        // Getting the position from the marker
-                        LatLng latLng = arg0.getPosition();
-
-
-                        // Getting reference to the TextView to set latitude
-                        TextView tvLat = (TextView) v.findViewById(R.id.tv_title);
-
-                        // Getting reference to the TextView to set longitude
-                        TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
-
-                        // Setting the latitude
-                        tvLat.setText("OnlinePlayer: " + arg0.getTitle());
-
-                        // Setting the longitude
-                        tvLng.setText("Longitude:" + latLng.longitude);
-
-                        // Returning the view containing InfoWindow contents
-                        return v;
-
-                    }
-                });
-            }
-        }
-    }
 
 
 
     public void onConnected(Bundle bundle) {
         Log.v(TAG, "Location services connected.");
-        if (mCurrentLocation == null) {
-            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (currentLocation == null) {
+            currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
 
-            if (mCurrentLocation != null ){
+            if (currentLocation != null ){
 
-                mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+                lastUpdateTime = DateFormat.getTimeInstance().format(new Date());
 
             }
 
@@ -284,9 +178,9 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
         }
 
         // If the user presses the Start Updates button before GoogleApiClient connects, we set
-        // mRequestingLocationUpdates to true (see startUpdatesButtonHandler()). Here, we check
-        // the value of mRequestingLocationUpdates and if it is true, we start location updates.
-        if (mRequestingLocationUpdates) {
+        // requestingLocationUpdates to true (see startUpdatesButtonHandler()). Here, we check
+        // the value of requestingLocationUpdates and if it is true, we start location updates.
+        if (requestingLocationUpdates) {
             startLocationUpdates();
         }
     }
@@ -299,27 +193,77 @@ public class OnlineGameActivity extends ActionBarActivity implements GoogleApiCl
     protected void startLocationUpdates() {
         // The final argument to {@code requestLocationUpdates()} is a LocationListener
         // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        mCurrentLocation = location;
-        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+        currentLocation = location;
+        lastUpdateTime = DateFormat.getTimeInstance().format(new Date());
         JSONObject object = new JSONObject();
         try {
-            object.put("longitude", mCurrentLocation.getLongitude());
-            object.put("latitude", mCurrentLocation.getLatitude());
+            object.put("longitude", currentLocation.getLongitude());
+            object.put("latitude", currentLocation.getLatitude());
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
 
-        sendPacket("location", object);
+        gameSocket.emit("location", object);
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Toast.makeText(getApplicationContext(), "Connection failed.", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        this.map = googleMap;
+        setPlayerName();
+        Log.v(TAG, "Connecting to: " + SERVER_URL);
+        try {
+            gameSocket = IO.socket(SERVER_URL);
+            gameSocket.connect();
+
+            setupComponents();
+
+        } catch (URISyntaxException e) {
+            Log.v(TAG, "Server URL is not valid! \n" + e);
+            Toast.makeText(getApplicationContext(), "Server URL is not valid!", Toast.LENGTH_LONG).show();
+            timerHandler.postDelayed(timerExecutor, 4 * 1000);
+            return;
+        }
+        buildGoogleApiClient();
+        setPlayerName();
+
+    }
+
+    private void setupComponents(){
+
+        messageListener = new MessageListener(this);
+        initializeListener = new InitializeListener(this);
+        kickListener = new KickListener(this);
+        gameStateListener2 = new GameStateListener2(this);
+        explodeListener = new ExplodeListener(this);
+
+        Log.v(TAG, "Starting...");
+
+
+        gameSocket.on("message", messageListener);
+        gameSocket.on("initialize", initializeListener);
+        gameSocket.on("kick", kickListener);
+        gameSocket.on("gamestate", gameStateListener2);
+        gameSocket.on("explode", explodeListener);
+
+        JSONObject object = new JSONObject();
+        try {
+            object.put("name", playerName);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        gameSocket.emit("acknowledge", object);
     }
 }

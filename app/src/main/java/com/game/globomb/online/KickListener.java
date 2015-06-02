@@ -25,12 +25,13 @@ public class KickListener implements Emitter.Listener {
                 JSONObject data = (JSONObject) args[0];
                 try {
                     String playerid = data.getString("identifier");
-                    Toast.makeText(activity, "OnlinePlayer disconnected", Toast.LENGTH_SHORT).show();
+
                     OnlinePlayer ply = activity.playerMap.get(playerid);
                     if (ply != null) {
                         activity.playerMap.remove(playerid);
                         ply.marker.remove();
                     }
+                    Toast.makeText(activity, ply.name+"  disconnected", Toast.LENGTH_SHORT).show();
                 }
                 catch (JSONException e) {
                     Log.v(TAG, "Unable to parse: " + data);
