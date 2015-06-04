@@ -130,7 +130,10 @@ public class BluetoothClient extends Thread {
     public void processPacket(String packet) {
         try {
             JSONObject obj = new JSONObject(packet);
+
             String id = obj.getString("packet");
+            activity.receivePacket(id, obj);
+
             Toast.makeText(activity, "Got packet: "+id, Toast.LENGTH_LONG).show();
             Log.e("info", obj.toString());
             /*gameSocket.on("message", messageListener);

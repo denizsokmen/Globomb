@@ -7,17 +7,16 @@
     tools:context=".GameActivity"
     android:background="@color/background_material_light">
 
-    <fragment
-        android:layout_width="match_parent"
-        android:layout_weight="1"
-        android:layout_height="0px" android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment" />
-
-    <Button
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="SEND GloBomb"
-        android:id="@+id/labelbutton"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Large Text"
+        android:id="@+id/textView2"
         android:layout_gravity="center_horizontal" />
 
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/listView2" />
 </LinearLayout>
