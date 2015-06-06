@@ -13,6 +13,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 
 /**
  * Created by Deniz on 31.5.2015.
@@ -84,7 +85,6 @@ public class ClientWorker extends Thread {
             JSONObject toSend = new JSONObject();
             String id = obj.getString("packet");
 
-            Toast.makeText(activity, "Got packet: "+id, Toast.LENGTH_LONG).show();
 
 
             if (id.equals("acknowledge")) {
@@ -109,7 +109,12 @@ public class ClientWorker extends Thread {
                 server.sendPacket(socket, "initialize", toSend);
             }
             else if (id.equals("bomb")) {
+                for (HashMap.Entry<String, LocalPlayer> entry : activity.playerMap.entrySet()) {
+                    entry.getValue().bomb = false;
+                }
                 LocalPlayer ply = activity.playerMap.get(obj.getString("identifier"));
+                Toast.makeText(activity, "bombed: "+obj.getString("identifier"), Toast.LENGTH_LONG).show();
+
                 if (ply != null) {
                     ply.bomb = true;
                 }

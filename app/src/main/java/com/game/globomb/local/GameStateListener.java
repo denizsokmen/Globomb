@@ -22,7 +22,34 @@ public class GameStateListener implements BluetoothPacket {
     }
 
     public void onReceive(JSONObject data) {
+        try {
+            JSONArray players = data.getJSONArray("players");
+            for(int i = 0; i < players.length(); i++) {
+                JSONObject playerJSON = players.getJSONObject(i);
+                String identifier = playerJSON.getString("identifier");
+                double longitude = playerJSON.getDouble("longitude");
+                double latitude = playerJSON.getDouble("latitude");
+                boolean bomb = playerJSON.getBoolean("bomb");
+                String name = playerJSON.getString("name");
 
+                LocalPlayer player = activity.playerMap.get(identifier);
+                if (player == null) {
+                    player = new LocalPlayer(activity);
+                    activity.playerMap.put(identifier, player);
+                }
+                player.identifier = identifier;
+                player.bomb = bomb;
+                player.name = name;
+                player.update();
+            }
+            String playerCount = ""+players.length();
+            String time = ""+(60-data.getInt("time"));
+            activity.timeText.setText(time);
+            activity.updatePlayers();
+        }
+        catch (JSONException e) {
+            Log.v(TAG, "Unable to parse: " + data);
+        }
     }
 
     public void call(final Object... args) {
@@ -54,7 +81,7 @@ public class GameStateListener implements BluetoothPacket {
                     String playerCount = ""+players.length();
                     String time = ""+(60-data.getInt("time"));
                     //activity.playerView.setText(playerCount);
-                   // activity.timeView.setText(time);
+                    // activity.timeView.setText(time);
                 }
                 catch (JSONException e) {
                     Log.v(TAG, "Unable to parse: " + data);

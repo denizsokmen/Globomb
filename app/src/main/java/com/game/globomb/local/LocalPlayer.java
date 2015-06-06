@@ -22,7 +22,5 @@ public class LocalPlayer {
     }
 
     public void update() {
-        marker.setPosition(new LatLng(latitude, longitude));
-        marker.setTitle(name);
     }
 }

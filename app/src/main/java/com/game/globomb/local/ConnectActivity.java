@@ -31,6 +31,7 @@ public class ConnectActivity extends ActionBarActivity {
     private BroadcastReceiver mReceiver;
     private ListAdapter adapter;
     private BluetoothAdapter btAdapter;
+    public String name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,13 +42,18 @@ public class ConnectActivity extends ActionBarActivity {
         items = new ArrayList<ServerEntry>();
         ListView listView = (ListView) findViewById(R.id.listView);
 
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            name = extras.getString("name", "generic player");
+        }
+
         Button hostbutton = (Button) findViewById(R.id.hostbutton);
 
         hostbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ConnectActivity.this, LocalGameActivity.class);
-                intent.putExtra("name", "asd");
+                intent.putExtra("name", name);
                 intent.putExtra("local", true);
                 intent.putExtra("host", true);
                 startActivity(intent);
@@ -63,7 +69,7 @@ public class ConnectActivity extends ActionBarActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ServerEntry entry = items.get(position);
                 Intent intent = new Intent(ConnectActivity.this, LocalGameActivity.class);
-                intent.putExtra("name", "asd");
+                intent.putExtra("name", name);
                 intent.putExtra("local", true);
                 intent.putExtra("host", false);
                 intent.putExtra("device", entry.device);

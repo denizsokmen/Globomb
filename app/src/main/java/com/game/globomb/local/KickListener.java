@@ -20,7 +20,20 @@ public class KickListener implements BluetoothPacket {
 
 
     public void onReceive(JSONObject data) {
+        try {
+            String playerid = data.getString("identifier");
 
+            LocalPlayer ply = activity.playerMap.get(playerid);
+            if (ply != null) {
+                activity.playerMap.remove(playerid);
+                ply.marker.remove();
+                Toast.makeText(activity, ply.name+" is disconnected", Toast.LENGTH_SHORT).show();
+            }
+        }
+        catch (JSONException e) {
+            Log.v(TAG, "Unable to parse: " + data);
+            return;
+        }
     }
 
 

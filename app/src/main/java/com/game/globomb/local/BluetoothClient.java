@@ -80,22 +80,11 @@ public class BluetoothClient extends Thread {
             e.printStackTrace();
         }
 
-        JSONObject object = new JSONObject();
-        try {
-            object.put("name", "asdf");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        activity.sendPacket("acknowledge", object);
-
-
+        activity.onConnectionSuccessful();
         DataInputStream in = new DataInputStream(inStream);
 
         while(true) {
-
             try {
-
                 int bytesRead = 0;
 
                 messageLength[0] = in.readByte();
@@ -133,69 +122,7 @@ public class BluetoothClient extends Thread {
 
             String id = obj.getString("packet");
             activity.receivePacket(id, obj);
-
-            Toast.makeText(activity, "Got packet: "+id, Toast.LENGTH_LONG).show();
             Log.e("info", obj.toString());
-            /*gameSocket.on("message", messageListener);
-            gameSocket.on("initialize", initializeListener);
-            gameSocket.on("kick", kickListener);
-            gameSocket.on("gamestate", gamestateListener);
-            gameSocket.on("explode", explodeListener);*/
-
-            if (id.equals("initialize")) {
-                JSONObject player = obj.getJSONObject("player");
-                String playerid = player.getString("identifier");
-                double longitude = player.getDouble("longitude");
-                double latitude = player.getDouble("latitude");
-                boolean bomb = player.getBoolean("bomb");
-                String name = player.getString("name");
-
-                LocalPlayer ply = new LocalPlayer(activity);
-                activity.playerMap.put(playerid, ply);
-                ply.identifier = playerid;
-                ply.latitude = latitude;
-                ply.longitude = longitude;
-                ply.bomb = bomb;
-                ply.name = name;
-                ply.update();
-                activity.selfPlayer = playerid;
-            }
-            else if (id.equals("kick")) {
-                String playerid = obj.getString("identifier");
-                Toast.makeText(activity, "OnlinePlayer disconnected", Toast.LENGTH_SHORT).show();
-                LocalPlayer ply = activity.playerMap.get(playerid);
-                if (ply != null) {
-                    activity.playerMap.remove(playerid);
-                    ply.marker.remove();
-                }
-            }
-            else if (id.equals("gamestate")) {
-                JSONArray players = obj.getJSONArray("players");
-                for(int i = 0; i < players.length(); i++) {
-                    JSONObject player = players.getJSONObject(i);
-                    String playerid = player.getString("identifier");
-                    double longitude = player.getDouble("longitude");
-                    double latitude = player.getDouble("latitude");
-                    boolean bomb = player.getBoolean("bomb");
-                    String name = player.getString("name");
-
-                    LocalPlayer ply = activity.playerMap.get(playerid);
-                    if (ply == null) {
-                        ply = new LocalPlayer(activity);
-                        activity.playerMap.put(playerid, ply);
-
-                    }
-                    ply.identifier = playerid;
-                    ply.latitude = latitude;
-                    ply.longitude = longitude;
-                    ply.bomb = bomb;
-                    ply.name = name;
-                    ply.update();
-                }
-                int number = obj.getInt("time");
-            }
-
-
         } catch (JSONException e) {
             e.printStackTrace();
         }
