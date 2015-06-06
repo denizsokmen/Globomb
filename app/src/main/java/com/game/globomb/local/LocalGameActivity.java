@@ -237,10 +237,11 @@ public class LocalGameActivity extends FragmentActivity {
                 playerObj.put("bomb", ply.bomb);
                 players.put(playerObj);
             }
+            time = time%60;
             gamestate.put("players", players);
-            gamestate.put("time", time%60);
+            gamestate.put("time", time);
 
-            timeText.setText(""+time);
+            timeText.setText(""+(60-time));
             updatePlayers();
             server.broadcast("gamestate", gamestate);
         } catch (JSONException e) {
@@ -280,7 +281,7 @@ public class LocalGameActivity extends FragmentActivity {
                 TextView bom = (TextView) v.findViewById(R.id.bombText);
                 if (bom != null) {
                     bom.setText(p.bomb ? "HAS BOMB" : "");
-                    bom.setTextColor(p.bomb ? 0xFF0000FF : 0x000000FF);
+                    bom.setTextColor(p.bomb ? 0x0000FFFF : 0x000000FF);
                 }
             }
             return v;
