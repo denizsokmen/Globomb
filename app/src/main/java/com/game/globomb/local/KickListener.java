@@ -25,40 +25,18 @@ public class KickListener implements BluetoothPacket {
 
             LocalPlayer ply = activity.playerMap.get(playerid);
             if (ply != null) {
-                activity.playerMap.remove(playerid);
-                ply.marker.remove();
-                Toast.makeText(activity, ply.name+" is disconnected", Toast.LENGTH_SHORT).show();
+                if (ply.identifier.equals(activity.selfPlayer)) {
+                    activity.client.cancel();
+                    activity.finish();
+                }
+                else {
+                    activity.playerMap.remove(playerid);
+                }
             }
         }
         catch (JSONException e) {
             Log.v(TAG, "Unable to parse: " + data);
             return;
         }
-    }
-
-
-    public void call(final Object... args) {
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Log.v(TAG, args[0].toString());
-                JSONObject data = (JSONObject) args[0];
-                try {
-                    String playerid = data.getString("identifier");
-
-                    /*OnlinePlayer ply = activity.playerMap.get(playerid);
-                    if (ply != null) {
-                        activity.playerMap.remove(playerid);
-                        ply.marker.remove();
-                    }
-                    Toast.makeText(activity, ply.name+" is disconnected", Toast.LENGTH_SHORT).show();*/
-                }
-                catch (JSONException e) {
-                    Log.v(TAG, "Unable to parse: " + data);
-                    return;
-                }
-            }
-        });
-
     }
 }

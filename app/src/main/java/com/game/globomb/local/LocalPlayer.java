@@ -1,5 +1,7 @@
 package com.game.globomb.local;
 
+import android.bluetooth.BluetoothSocket;
+
 import com.game.globomb.online.OnlineGameActivity;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -16,6 +18,7 @@ public class LocalPlayer {
     public String name;
     public boolean bomb;
     public Marker marker;
+    public BluetoothSocket socket; //only for host
 
     public LocalPlayer(LocalGameActivity game) {
 //        marker = game.mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("You are here!"));

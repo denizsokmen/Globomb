@@ -71,6 +71,15 @@ public class ClientWorker extends Thread {
                 end = false;
 
             } catch (IOException e) {
+                server.sockets.remove(socket);
+                activity.playerMap.remove(socket.toString());
+                JSONObject toSend = new JSONObject();
+                try {
+                    toSend.put("identifier", socket.toString());
+                } catch (JSONException e1) {
+                    e1.printStackTrace();
+                }
+                server.broadcast("kick", toSend);
                 e.printStackTrace();
                 break;
             }
@@ -90,6 +99,7 @@ public class ClientWorker extends Thread {
             if (id.equals("acknowledge")) {
                 LocalPlayer ply = new LocalPlayer(activity);
                 ply.identifier = socket.toString();
+                ply.socket = socket;
                 activity.playerMap.put(ply.identifier, ply);
                 ply.latitude = 0;
                 ply.longitude = 0;

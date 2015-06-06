@@ -34,9 +34,10 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 public class LocalGameActivity extends FragmentActivity {
-    private BluetoothClient client;
+    public BluetoothClient client;
     private BluetoothServer server;
     private boolean isHost;
     private boolean isLocal;
@@ -45,6 +46,7 @@ public class LocalGameActivity extends FragmentActivity {
     public HashMap<String, LocalPlayer> playerMap = new HashMap<String, LocalPlayer>();
     public String selfPlayer;
     public String playerName;
+    public Random random = new Random();
 
     public ArrayList<LocalPlayer> players = new ArrayList<LocalPlayer>();
 
@@ -108,6 +110,12 @@ public class LocalGameActivity extends FragmentActivity {
         startConnection();
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (isHost)
+            handler.removeCallbacks(runnable);
+    }
 
     @Override
     public void onResume() {
@@ -134,9 +142,30 @@ public class LocalGameActivity extends FragmentActivity {
         {
             public void run()
             {
-                sendGamestate();
-                handler.postDelayed(this, 1000);
                 time++;
+                sendGamestate();
+
+                if (time == 0) {
+                    JSONObject explodepacket = new JSONObject();
+                    JSONObject kickpacket = new JSONObject();
+                    for (HashMap.Entry<String, LocalPlayer> entry : playerMap.entrySet()) {
+                        LocalPlayer ply = entry.getValue();
+                        if (ply.bomb) {
+                            try {
+                                explodepacket.put("identifier", ply.identifier);
+                                kickpacket.put("identifier", ply.identifier);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        server.sendPacket(ply.socket, "kick", kickpacket);
+                    }
+                    server.broadcast("explode", explodepacket);
+                    randomBomb();
+                }
+
+
+                handler.postDelayed(this, 1000);
             }
         };
         runnable.run();
@@ -222,6 +251,16 @@ public class LocalGameActivity extends FragmentActivity {
         adapter.notifyDataSetChanged();
     }
 
+    public void randomBomb() {
+        for (HashMap.Entry<String, LocalPlayer> entry : playerMap.entrySet()) {
+            entry.getValue().bomb = false;
+        }
+
+        LocalPlayer ply = players.get(random.nextInt(players.size()));
+        ply.bomb = true;
+        sendGamestate();
+    }
+
 
     public void sendGamestate() {
         try {
@@ -248,6 +287,7 @@ public class LocalGameActivity extends FragmentActivity {
             e.printStackTrace();
         }
     }
+
 
     private class ListAdapter extends ArrayAdapter<LocalPlayer> {
 

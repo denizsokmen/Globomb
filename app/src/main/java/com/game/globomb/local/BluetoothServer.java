@@ -20,7 +20,7 @@ public class BluetoothServer extends Thread {
     public final UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private BluetoothAdapter mBluetoothAdapter;
     private LocalGameActivity game;
-    private ArrayList<BluetoothSocket> sockets;
+    public ArrayList<BluetoothSocket> sockets;
 
     public BluetoothServer(LocalGameActivity activity) {
         // Use a temporary object that is later assigned to mmServerSocket,
