@@ -123,7 +123,8 @@ public class ClientWorker extends Thread {
                     entry.getValue().bomb = false;
                 }
                 LocalPlayer ply = activity.playerMap.get(obj.getString("identifier"));
-                Toast.makeText(activity, "bombed: "+obj.getString("identifier"), Toast.LENGTH_LONG).show();
+                if (ply.identifier.equals(activity.selfPlayer))
+                    Toast.makeText(activity, "You got the bomb", Toast.LENGTH_LONG).show();
 
                 if (ply != null) {
                     ply.bomb = true;

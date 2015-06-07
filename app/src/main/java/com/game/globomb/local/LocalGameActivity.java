@@ -3,6 +3,7 @@ package com.game.globomb.local;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -84,12 +86,14 @@ public class LocalGameActivity extends FragmentActivity {
                     self.bomb = false;
                     JSONObject bombjson = new JSONObject();
                     try {
-                        Toast.makeText(LocalGameActivity.this, entry.identifier, Toast.LENGTH_SHORT).show();
+
                         Log.e("identify: ", entry.identifier);
                         bombjson.put("identifier", entry.identifier);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+
+                    Toast.makeText(LocalGameActivity.this, "You have sent the bomb to: " + entry.name, Toast.LENGTH_SHORT).show();
                     sendPacket("bomb", bombjson);
                 }
             }
@@ -318,10 +322,9 @@ public class LocalGameActivity extends FragmentActivity {
                     nam.setText(p.name);
                 }
 
-                TextView bom = (TextView) v.findViewById(R.id.bombText);
+                ImageView bom = (ImageView) v.findViewById(R.id.playerimg);
                 if (bom != null) {
-                    bom.setText(p.bomb ? "HAS BOMB" : "");
-                    bom.setTextColor(p.bomb ? 0x0000FFFF : 0x000000FF);
+                    bom.setAlpha(p.bomb ? 1.0f: 0.2f);
                 }
             }
             return v;

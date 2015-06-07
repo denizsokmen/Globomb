@@ -1,6 +1,7 @@
 package com.game.globomb.local;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import com.game.globomb.online.OnlineGameActivity;
 import com.game.globomb.online.OnlinePlayer;
@@ -23,6 +24,7 @@ public class GameStateListener implements BluetoothPacket {
 
     public void onReceive(JSONObject data) {
         try {
+            boolean selfbomb = activity.playerMap.get(activity.selfPlayer).bomb;
             JSONArray players = data.getJSONArray("players");
             for(int i = 0; i < players.length(); i++) {
                 JSONObject playerJSON = players.getJSONObject(i);
@@ -46,9 +48,13 @@ public class GameStateListener implements BluetoothPacket {
             String time = ""+(60-data.getInt("time"));
             activity.timeText.setText(time);
             activity.updatePlayers();
+            if (!selfbomb && activity.playerMap.get(activity.selfPlayer).bomb) {
+                Toast.makeText(activity, "You got the bomb!", Toast.LENGTH_SHORT).show();
+            }
         }
         catch (JSONException e) {
             Log.v(TAG, "Unable to parse: " + data);
         }
+
     }
 }

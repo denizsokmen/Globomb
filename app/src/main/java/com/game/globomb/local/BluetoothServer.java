@@ -67,6 +67,8 @@ public class BluetoothServer extends Thread {
 
 
     public synchronized void sendPacket(BluetoothSocket client, String name, JSONObject packet) {
+        if (client == null)
+            return;
         try {
             packet.put("packet", name);
             DataOutputStream stream = new DataOutputStream(client.getOutputStream());
