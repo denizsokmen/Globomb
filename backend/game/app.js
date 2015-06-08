@@ -90,20 +90,37 @@ Game.prototype.restart = function () {
     //console.log("Restart second: " + (this.timer.elapsedTime / 1000));
     console.log("New round!");
     var myself = this;
+    var explodedIdentifier = null;
     for (var identifier in this.players) {
         if (this.players.hasOwnProperty(identifier)) {
-            this.players[identifier].bomb = false;
-            this.io.to(identifier).emit("message",{
-                "username":"master chief",
-                "message":"new round!"
-            });
-
+            if (this.players[identifier].bomb == true) {
+                explodedIdentifier = identifier;
+                break;
+            }
         }
     }
+
 
     var allPlayers = Object.keys(this.players).map(function(key){
         return myself.players[key];
     });
+
+
+    for (var new_identifier in this.players) {
+        if (this.players.hasOwnProperty(new_identifier)) {
+
+            this.players[new_identifier].bomb = false;
+            if (allPlayers.length > 1) {
+                this.io.to(explodedIdentifier).emit("explode",{
+                    "identifier":explodedIdentifier
+                });
+            }
+
+
+        }
+    }
+
+
     if (allPlayers.length > 0) {
         var randomPlayer = allPlayers[Math.floor(Math.random()*allPlayers.length)];
 

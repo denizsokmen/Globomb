@@ -81,8 +81,8 @@ public class OnlineGameActivity extends FragmentActivity implements OnMapReadyCa
     public OnlinePlayer chosen = null;
     public OnlinePlayer player = null;
 
-    private Handler timerHandler = new Handler();
-    private Runnable timerExecutor = new Runnable() {
+    public Handler timerHandler = new Handler();
+    public Runnable timerExecutor = new Runnable() {
         @Override
         public void run() {
             finish();
